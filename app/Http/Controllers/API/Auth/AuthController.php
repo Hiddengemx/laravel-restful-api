@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -24,17 +24,14 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return response()->json([
-            'token' => $user->createToken('auth_token')->plainTextToken,
-            'token_type' => 'Bearer',
-        ]);
+        return response()->json(['message' => 'User registered successfully']);
     }
 
     public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required',
+            'password' => 'required|string|min:8',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -44,6 +41,8 @@ class AuthController extends Controller
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
+
+        $user->tokens()->delete();
 
         return response()->json([
             'token' => $user->createToken('auth_token')->plainTextToken,
